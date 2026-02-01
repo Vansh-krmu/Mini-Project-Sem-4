@@ -17,7 +17,6 @@ Input: `3 + 4 * 2`
 
 Output: `11`
 
-
 ## How It Works
 
 1. **Tokenization**  
