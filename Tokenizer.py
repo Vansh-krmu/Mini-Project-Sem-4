@@ -1,19 +1,17 @@
 import re
 
-# Token specification
 TOKEN_SPECIFICATION = [
-    ('NUMBER',   r'\d+'),        # Integer number
-    ('PLUS',     r'\+'),         # Addition
-    ('MINUS',    r'-'),          # Subtraction
-    ('MUL',      r'\*'),         # Multiplication
-    ('DIV',      r'/'),          # Division
-    ('LPAREN',   r'\('),         # Left Parenthesis
-    ('RPAREN',   r'\)'),         # Right Parenthesis
-    ('SKIP',     r'[ \t]+'),     # Skip spaces and tabs
-    ('MISMATCH', r'.'),          # Any other character
+    ('NUMBER',   r'\d+'),        
+    ('PLUS',     r'\+'),         
+    ('MINUS',    r'-'),          
+    ('MUL',      r'\*'),         
+    ('DIV',      r'/'),          
+    ('LPAREN',   r'\('),         
+    ('RPAREN',   r'\)'),         
+    ('SKIP',     r'[ \t]+'),     
+    ('MISMATCH', r'.'),          
 ]
 
-# Combine all token patterns into one regex
 token_regex = '|'.join(f'(?P<{name}>{pattern})' for name, pattern in TOKEN_SPECIFICATION)
 
 def tokenize(expression):
