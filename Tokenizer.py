@@ -1,35 +1,33 @@
 import re
+from errors import LexerError
 
-TOKEN_SPECIFICATION = [
-    ('NUMBER',   r'\d+'),        
-    ('PLUS',     r'\+'),         
-    ('MINUS',    r'-'),          
-    ('MUL',      r'\*'),         
-    ('DIV',      r'/'),          
-    ('LPAREN',   r'\('),         
-    ('RPAREN',   r'\)'),         
-    ('SKIP',     r'[ \t]+'),     
-    ('MISMATCH', r'.'),          
+TOKEN_SPEC = [
+    ('NUMBER',   r'\d+(\.\d+)?'),
+    ('PLUS',     r'\+'),
+    ('MINUS',    r'-'),
+    ('MULTIPLY', r'\*'),
+    ('DIVIDE',   r'/'),
+    ('LPAREN',   r'\('),
+    ('RPAREN',   r'\)'),
+    ('SKIP',     r'[ \t]+'),
+    ('MISMATCH', r'.')
 ]
 
-token_regex = '|'.join(f'(?P<{name}>{pattern})' for name, pattern in TOKEN_SPECIFICATION)
-
-def tokenize(expression):
+def tokenize(code):
     tokens = []
+    regex = '|'.join(f'(?P<{name}>{pattern})' for name, pattern in TOKEN_SPEC)
 
-    for match in re.finditer(token_regex, expression):
+    for match in re.finditer(regex, code):
         kind = match.lastgroup
         value = match.group()
 
         if kind == 'NUMBER':
-            tokens.append(('NUMBER', int(value)))
-        elif kind in ('PLUS', 'MINUS', 'MUL', 'DIV', 'LPAREN', 'RPAREN'):
-            tokens.append((kind, value))
+            tokens.append((kind, float(value)))
         elif kind == 'SKIP':
             continue
         elif kind == 'MISMATCH':
-            raise SyntaxError(f"Invalid character: {value}")
+            raise LexerError(f"Invalid character: {value}")
+        else:
+            tokens.append((kind, value))
 
     return tokens
-expr = "3 + 4 * (2 - 1) + 78 / 2 (56 * 67)"
-print(tokenize(expr))
