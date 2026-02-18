@@ -1,4 +1,3 @@
-3. ast_nodes.py (AST Structure)
 class NumberNode:
     def __init__(self, value):
         self.value = value
