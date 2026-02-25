@@ -37,3 +37,19 @@ class MiniMathApp:
 
         frame = tk.Frame(root)
         frame.pack(pady=10)
+
+          # AST
+        ast_frame = tk.Frame(frame)
+        ast_frame.pack(side=tk.LEFT, padx=10)
+
+        tk.Label(ast_frame, text="Abstract Syntax Tree").pack()
+        self.ast_text = tk.Text(ast_frame, height=15, width=35)
+        self.ast_text.pack()
+
+        # History
+        history_frame = tk.Frame(frame)
+        history_frame.pack(side=tk.RIGHT, padx=10)
+
+        tk.Label(history_frame, text="Calculation History").pack()
+        self.history_list = tk.Listbox(history_frame, height=15, width=30)
+        self.history_list.pack()
