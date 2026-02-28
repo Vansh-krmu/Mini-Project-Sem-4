@@ -23,33 +23,52 @@ class MiniMathApp:
         self.root = root
         self.root.title("Mini-Math Interpreter")
         self.root.geometry("750x500")
-
+     
         tk.Label(root, text="Mini-Math Interpreter", font=("Arial", 16, "bold")).pack(pady=10)
-
+     
         tk.Label(root, text="Enter Expression:").pack()
         self.entry = tk.Entry(root, width=40, font=("Arial", 12))
         self.entry.pack(pady=5)
-
+     
         tk.Button(root, text="Evaluate", command=self.calculate).pack(pady=10)
-
+     
         self.result_label = tk.Label(root, text="Result:", font=("Arial", 12))
         self.result_label.pack()
-
+     
         frame = tk.Frame(root)
         frame.pack(pady=10)
-
+     
           # AST
         ast_frame = tk.Frame(frame)
         ast_frame.pack(side=tk.LEFT, padx=10)
-
+     
         tk.Label(ast_frame, text="Abstract Syntax Tree").pack()
         self.ast_text = tk.Text(ast_frame, height=15, width=35)
         self.ast_text.pack()
-
+     
         # History
         history_frame = tk.Frame(frame)
         history_frame.pack(side=tk.RIGHT, padx=10)
-
+     
         tk.Label(history_frame, text="Calculation History").pack()
         self.history_list = tk.Listbox(history_frame, height=15, width=30)
         self.history_list.pack()
+     
+    def calculate(self):
+        expr = self.entry.get()
+
+        try:
+            tokens = tokenize(expr)
+            parser = Parser(tokens)
+            ast = parser.parse()
+            result = evaluate(ast)
+
+            self.result_label.config(text=f"Result: {result}")
+
+            self.ast_text.delete("1.0", tk.END)
+            self.ast_text.insert(tk.END, ast_to_string(ast))
+
+            self.history_list.insert(tk.END, f"{expr} = {result}")
+
+        except (LexerError, ParserError, EvaluationError) as e:
+            messagebox.showerror("Error", str(e)) 
