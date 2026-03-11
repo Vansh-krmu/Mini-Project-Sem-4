@@ -5,7 +5,7 @@
 '''
 
 import tkinter as tk
-from GUI import MiniMathApp
+from gui import MiniMathApp
 
 def main():
     root = tk.Tk()
