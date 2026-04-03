@@ -1,33 +1,27 @@
 import re
-from errors import LexerError
 
-TOKEN_SPEC = [
-    ('NUMBER',   r'\d+(\.\d+)?'),
-    ('PLUS',     r'\+'),
-    ('MINUS',    r'-'),
-    ('MULTIPLY', r'\*'),
-    ('DIVIDE',   r'/'),
-    ('LPAREN',   r'\('),
-    ('RPAREN',   r'\)'),
-    ('SKIP',     r'[ \t]+'),
-    ('MISMATCH', r'.')
+TOKEN_REGEX = [
+    ("NUMBER", r"\d+(\.\d+)?"),
+    ("FUNC", r"sin|cos|tan"),
+    ("IDENT", r"[a-zA-Z]+"),
+    ("OP", r"[+\-*/=]"),
+    ("LPAREN", r"\("),
+    ("RPAREN", r"\)"),
+    ("SKIP", r"[ \t]+"),
 ]
 
-def tokenize(code):
+
+def tokenize(text):
     tokens = []
-    regex = '|'.join(f'(?P<{name}>{pattern})' for name, pattern in TOKEN_SPEC)
-
-    for match in re.finditer(regex, code):
-        kind = match.lastgroup
-        value = match.group()
-
-        if kind == 'NUMBER':
-            tokens.append((kind, float(value)))
-        elif kind == 'SKIP':
-            continue
-        elif kind == 'MISMATCH':
-            raise LexerError(f"Invalid character: {value}")
+    while text:
+        for token_type, regex in TOKEN_REGEX:
+            match = re.match(regex, text)
+            if match:
+                value = match.group(0)
+                if token_type != "SKIP":
+                    tokens.append((token_type, value))
+                text = text[len(value):]
+                break
         else:
-            tokens.append((kind, value))
-
+            raise Exception(f"Invalid character: {text[0]}")
     return tokens
