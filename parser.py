@@ -1,4 +1,4 @@
-from ast_nodes import NumberNode, BinaryOpNode
+from ast_nodes import *
 from errors import ParserError
 
 class Parser:
@@ -6,60 +6,71 @@ class Parser:
         self.tokens = tokens
         self.pos = 0
 
-    def current_token(self):
+    def current(self):
         if self.pos < len(self.tokens):
             return self.tokens[self.pos]
         return None
 
-    def eat(self, token_type):
-        token = self.current_token()
-        if token and token[0] == token_type:
-            self.pos += 1
-            return token
-        raise ParserError(f"Expected {token_type}")
+    def eat(self):
+        self.pos += 1
 
     def parse(self):
-        node = self.expression()
+        return self.expr()
 
-        if self.current_token() is not None:
-            raise ParserError("Unexpected token")
-
-        return node
-
-    def expression(self):
+    def expr(self):
         node = self.term()
 
-        while self.current_token() and self.current_token()[0] in ('PLUS', 'MINUS'):
-            operator = self.eat(self.current_token()[0])[0]
-            right = self.term()
-            node = BinaryOpNode(node, operator, right)
+        while self.current() and self.current()[1] in ('+', '-'):
+            op = self.current()[1]
+            self.eat()
+            node = BinaryOpNode(node, op, self.term())
 
         return node
 
     def term(self):
         node = self.factor()
 
-        while self.current_token() and self.current_token()[0] in ('MULTIPLY', 'DIVIDE'):
-            operator = self.eat(self.current_token()[0])[0]
-            right = self.factor()
-            node = BinaryOpNode(node, operator, right)
+        while self.current() and self.current()[1] in ('*', '/'):
+            op = self.current()[1]
+            self.eat()
+            node = BinaryOpNode(node, op, self.factor())
 
         return node
 
     def factor(self):
-        token = self.current_token()
+        token = self.current()
 
         if token is None:
-            raise ParserError("Unexpected end of input")
+            return None
 
-        if token[0] == 'NUMBER':
-            self.eat('NUMBER')
-            return NumberNode(token[1])
+        if token[1] == '-':
+            self.eat()
+            return UnaryOpNode('-', self.factor())
 
-        if token[0] == 'LPAREN':
-            self.eat('LPAREN')
-            node = self.expression()
-            self.eat('RPAREN')
+        if token[0] == "NUMBER":
+            self.eat()
+            return NumberNode(float(token[1]))
+
+        if token[0] == "IDENT":
+            name = token[1]
+            self.eat()
+            if self.current() and self.current()[1] == '=':
+                self.eat()
+                return AssignNode(name, self.expr())
+            return VariableNode(name)
+
+        if token[0] == "FUNC":
+            func = token[1]
+            self.eat()
+            self.eat()  # (
+            arg = self.expr()
+            self.eat()  # )
+            return FunctionNode(func, arg)
+
+        if token[1] == '(':
+            self.eat()
+            node = self.expr()
+            self.eat()
             return node
 
-        raise ParserError("Invalid syntax")
+        raise Exception("Invalid syntax")
