@@ -79,3 +79,57 @@ class MiniMathApp:
 
         self.history = tk.Listbox(frame, width=35)
         self.history.pack(side=tk.RIGHT, padx=10)
+
+    # ---------- Evaluate ----------
+    def calculate(self):
+        expr = self.entry.get()
+
+        try:
+            tokens = tokenize(expr)
+            ast = Parser(tokens).parse()
+            result = evaluate(ast)
+
+            self.result.config(text=f"Result: {result}")
+
+            self.tree.delete("1.0", tk.END)
+            self.tree.insert(tk.END, pretty_tree(ast))
+
+            self.history.insert(tk.END, f"{expr} = {result}")
+
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    # ---------- Clear ----------
+    def clear_all(self):
+        self.entry.delete(0, tk.END)
+        self.result.config(text="")
+        self.tree.delete("1.0", tk.END)
+        self.history.delete(0, tk.END)
+        variables.clear()
+
+    # ---------- Graph ----------
+    def plot_graph(self):
+        expr = self.entry.get()
+
+        try:
+            x_vals = np.linspace(-10, 10, 200)
+            y_vals = []
+
+            for x in x_vals:
+                variables['x'] = x
+                tokens = tokenize(expr)
+                ast = Parser(tokens).parse()
+                y = evaluate(ast)
+                y_vals.append(y)
+
+            plt.figure()
+            plt.plot(x_vals, y_vals)
+            plt.title(f"Graph of {expr}")
+            plt.xlabel("x")
+            plt.ylabel("y")
+            plt.grid()
+
+            plt.show()
+
+        except Exception as e:
+            messagebox.showerror("Graph Error", str(e))
