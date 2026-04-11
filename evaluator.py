@@ -1,42 +1,83 @@
-import math
 from ast_nodes import *
+from errors import EvaluationError
+import math
 
-variables = {}
 
-def evaluate(node):
-    if isinstance(node, NumberNode):
-        return node.value
+class Evaluator:
+    def __init__(self, db):
+        self.db = db
 
-    if isinstance(node, UnaryOpNode):
-        return -evaluate(node.node)
+    def evaluate(self, node):
 
-    if isinstance(node, BinaryOpNode):
-        if node.operator == '+':
-            return evaluate(node.left) + evaluate(node.right)
-        if node.operator == '-':
-            return evaluate(node.left) - evaluate(node.right)
-        if node.operator == '*':
-            return evaluate(node.left) * evaluate(node.right)
-        if node.operator == '/':
-            return evaluate(node.left) / evaluate(node.right)
+        if isinstance(node, NumberNode):
+            return node.value
 
-    if isinstance(node, VariableNode):
-        if node.name in variables:
-            return variables[node.name]
-        raise Exception(f"Undefined variable {node.name}")
+        elif isinstance(node, UnaryOpNode):
+            val = self.evaluate(node.node)
 
-    if isinstance(node, AssignNode):
-        value = evaluate(node.value)
-        variables[node.name] = value
-        return value
+            if node.operator == '-':
+                return -val
 
-    if isinstance(node, FunctionNode):
-        val = evaluate(node.argument)
-        if node.func_name == "sin":
-            return math.sin(val)
-        if node.func_name == "cos":
-            return math.cos(val)
-        if node.func_name == "tan":
-            return math.tan(val)
+        elif isinstance(node, BinaryOpNode):
+            left = self.evaluate(node.left)
+            right = self.evaluate(node.right)
 
-    raise Exception("Evaluation error")
+            if node.operator == '+':
+                return left + right
+
+            elif node.operator == '-':
+                return left - right
+
+            elif node.operator == '*':
+                return left * right
+
+            elif node.operator == '/':
+                if right == 0:
+                    raise EvaluationError("Division by zero")
+                return left / right
+
+            elif node.operator == '^':
+                return left ** right
+
+        elif isinstance(node, AssignNode):
+            value = self.evaluate(node.value)
+            self.db.save_variable(node.name, value)
+            return value
+
+        elif isinstance(node, VariableNode):
+            value = self.db.get_variable(node.name)
+
+            if value is None:
+                raise EvaluationError(
+                    f"Variable '{node.name}' not defined"
+                )
+
+            return value
+
+        elif isinstance(node, FunctionNode):
+            val = self.evaluate(node.argument)
+
+            if node.func_name == "sin":
+                return math.sin(math.radians(val))
+
+            elif node.func_name == "cos":
+                return math.cos(math.radians(val))
+
+            elif node.func_name == "tan":
+                return math.tan(math.radians(val))
+
+            elif node.func_name == "sqrt":
+                if val < 0:
+                    raise EvaluationError("Invalid sqrt")
+                return math.sqrt(val)
+
+            elif node.func_name == "log":
+                if val <= 0:
+                    raise EvaluationError("Invalid log")
+                return math.log10(val)
+
+            raise EvaluationError(
+                f"Unknown function '{node.func_name}'"
+            )
+
+        raise EvaluationError("Invalid expression")
