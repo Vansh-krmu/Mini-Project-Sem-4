@@ -1,36 +1,55 @@
+# tokenizer.py
+
 import re
 from errors import LexerError
 
-TOKEN_SPEC = [
-    ("NUMBER", r"\d+(\.\d+)?"),
-    ("IDENT", r"[a-zA-Z_]\w*"),
-    ("OP", r"[\+\-\*/\^=]"),
-    ("LPAREN", r"\("),
-    ("RPAREN", r"\)"),
-    ("SKIP", r"[ \t]+"),
-]
 
 def tokenize(text):
     tokens = []
-    pos = 0
 
-    while pos < len(text):
-        match = None
+    token_specification = [
+        ("NUMBER", r"\d+(\.\d+)?"),
+        ("FUNC", r"sin|cos|tan|sqrt|log"),        
+        ("IDENT", r"[a-zA-Z_]\w*"),                
+        ("OP", r"[\+\-\*/\^=]"),               
+        ("LPAREN", r"\("),                     
+        ("RPAREN", r"\)"),                        
+        ("SKIP", r"[ \t]+"),                     
+        ("MISMATCH", r"."),                     
 
-        for token_type, pattern in TOKEN_SPEC:
-            regex = re.compile(pattern)
-            match = regex.match(text, pos)
+    tok_regex = "|".join(
+        f"(?P<{name}>{pattern})"
+        for name, pattern in token_specification
+    )
 
-            if match:
-                value = match.group(0)
+    for match in re.finditer(tok_regex, text):
+        kind = match.lastgroup
+        value = match.group()
 
-                if token_type != "SKIP":
-                    tokens.append((token_type, value))
+        if kind == "NUMBER":
+            tokens.append(("NUMBER", value))
 
-                pos = match.end()
-                break
+        elif kind == "FUNC":
+            tokens.append(("FUNC", value))
 
-        if not match:
-            raise LexerError(f"Invalid character: {text[pos]}")
+        elif kind == "IDENT":
+            tokens.append(("IDENT", value))
+
+        elif kind == "OP":
+            tokens.append(("OP", value))
+
+        elif kind == "LPAREN":
+            tokens.append(("LPAREN", value))
+
+        elif kind == "RPAREN":
+            tokens.append(("RPAREN", value))
+
+        elif kind == "SKIP":
+            continue
+
+        elif kind == "MISMATCH":
+            raise LexerError(
+                f"Unexpected character: {value}"
+            )
 
     return tokens
