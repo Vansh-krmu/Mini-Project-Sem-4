@@ -120,4 +120,34 @@ class MiniMathApp:
         self.result.config(text="")
         self.tree.delete("1.0", tk.END)
         self.history.delete(0, tk.END)
+ # ---------- Graph ----------
+    def plot_graph(self):
+        try:
+            import numpy as np
+            import matplotlib.pyplot as plt
 
+            expr = self.entry.get()
+
+            x_vals = np.linspace(-10, 10, 200)
+            y_vals = []
+
+            for x in x_vals:
+              
+                self.db.save_variable("x", float(x))
+
+                tokens = tokenize(expr)
+                ast = Parser(tokens).parse()
+                y = self.evaluator.evaluate(ast)
+
+                y_vals.append(y)
+
+            plt.figure()
+            plt.plot(x_vals, y_vals)
+            plt.title(f"Graph of {expr}")
+            plt.xlabel("x")
+            plt.ylabel("y")
+            plt.grid()
+            plt.show()
+
+        except Exception as e:
+            messagebox.showerror("Graph Error", str(e))
