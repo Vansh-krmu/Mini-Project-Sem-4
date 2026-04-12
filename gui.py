@@ -81,3 +81,43 @@ class MiniMathApp:
 
 
         self.load_history()
+        
+    # ---------- Evaluate ----------
+    def calculate(self):
+        expr = self.entry.get()
+
+        try:
+            tokens = tokenize(expr)
+            ast = Parser(tokens).parse()
+
+            result = self.evaluator.evaluate(ast)
+
+            # SAVE TO DB
+            self.db.save_history(expr, result)
+
+            self.result.config(text=f"Result: {result}")
+
+            self.tree.delete("1.0", tk.END)
+            self.tree.insert(tk.END, pretty_tree(ast))
+
+            self.history.insert(tk.END, f"{expr} = {result}")
+
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    # ---------- Load History ----------
+    def load_history(self):
+        try:
+            records = self.db.get_history()
+            for item in records:
+                self.history.insert(tk.END, f"{item['expression']} = {item['result']}")
+        except:
+            pass
+
+    # ---------- Clear ----------
+    def clear_all(self):
+        self.entry.delete(0, tk.END)
+        self.result.config(text="")
+        self.tree.delete("1.0", tk.END)
+        self.history.delete(0, tk.END)
+
